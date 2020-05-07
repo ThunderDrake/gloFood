@@ -27,6 +27,7 @@ const restaurantTitle = document.querySelector('.restaurant-title');
 const rating = document.querySelector('.rating');
 const minPrice = document.querySelector('.price');
 const category = document.querySelector('.category');
+const inputSearch = document.querySelector('.input-search');
 
 
 let login = localStorage.getItem('gloDelivery');
@@ -190,6 +191,50 @@ function init() {
       containerPromo.classList.remove('hide');
       restaurants.classList.remove('hide');
       menu.classList.add('hide');
+   });
+   inputSearch.addEventListener('keydown', (event) => {
+      if (event.keyCode == 13) {
+         const target = event.target;
+
+         const value = target.value.toLowerCase().trim();
+
+         target.value = '';
+         if (!value || value.length < 3) {
+            target.style.backgroundColor = 'tomato';
+            setTimeout(() => {
+               target.style.backgroundColor = ''
+            }, 2000);
+            return;
+         };
+
+         const goods = [];
+         getData('./db/partners.json').then((data) => {
+            const products = data.map(item => {
+               return item.products;
+            });
+            products.forEach((product) => {
+               getData(`./db/${product}`).then((data) => {
+                  goods.push(...data);
+                  const searchGoods = goods.filter((item) => {
+                     return item.name.toLowerCase().includes(value)
+                  });
+                  cardsMenu.textContent = '';
+                  containerPromo.classList.add('hide');
+                  restaurants.classList.add('hide');
+                  menu.classList.remove('hide');
+                  restaurantTitle.textContent = 'Результат поиска';
+                  rating.textContent = '';
+                  minPrice.textContent = '';
+                  category.textContent = '';
+
+                  return searchGoods
+               }).then((data) => {
+                  data.forEach(createCardGood);
+               });
+            });
+            
+         });
+      }
    });
    
    checkAuth();
